@@ -4,7 +4,7 @@ from aiparser import *
 from ailogic import *
 
     
-formula = parse("s11 <-> w12 || w21")
+formula = parse("s1,1 <-> w1,2 || w2,1")
 print(formula.tostring())
 #print(formula.copy().tostring())
 

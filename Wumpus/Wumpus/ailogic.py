@@ -16,6 +16,21 @@ class Formula:
     def getValueNode(self, name):
         return self.formula.getValueNode(name)
     
+    @staticmethod
+    def replaceSubFormula(formula, node, replaceWith):
+        if node.parent != None:
+            parent = node.parent
+            if parent.Left == node:
+                parent.Left = replaceWith
+                parent.Left.parent = parent
+            elif parent.Right == node:
+                parent.Right = replaceWith
+                parent.Right.parent = parent
+            else:
+                raise Exception("Failed to find correct node")
+        else:
+            formula.formula = replaceWith
+
     def executeRuleIfPossible(self, rule):
         match = self.findRuleMatch(rule)
         if match == None:
@@ -24,34 +39,12 @@ class Formula:
         replacer = {}
         match.createReplaceTable(rule.before.formula, replacer)
         
-        if match.parent != None:
-            parent = match.parent
-            if parent.Left == match:
-                parent.Left = rule.after.formula.copy()
-                parent.Left.parent = parent
-            elif parent.Right == match:
-                parent.Right = rule.after.formula.copy()
-                parent.Right.parent = parent
-            else:
-                raise Exception("Failed to find correct node")
-        else:
-            self.formula = rule.after.formula.copy()
+        Formula.replaceSubFormula(self, match, rule.after.formula.copy())
             
         for valueName in replacer:
             node = self.getValueNode(valueName)
             while node != None:
-                if node.parent == None:
-                    self.formula = replacer[valueName]
-                else:
-                    parent = node.parent
-                    if parent.Left == node:
-                        parent.Left = replacer[valueName]
-                        parent.Left.parent = parent
-                    elif parent.Right == node:
-                        parent.Right = replacer[valueName]
-                        parent.Right.parent = parent
-                    else:
-                        raise Exception("Failed to find correct node")
+                Formula.replaceSubFormula(self, node, replacer[valueName].copy())
                 node = self.getValueNode(valueName)
             
 
@@ -60,9 +53,13 @@ class Rule:
     def __init__(self, before, after):
         self.before = before
         self.after = after
-    
-    def executeRule(self, node):
-        return None
+
+class KnowlegdeRule:
+    def __init__(self, befores, afters):
+        self.befores = befores
+        self.afters = afters
+
+
 
 class Node:
 
