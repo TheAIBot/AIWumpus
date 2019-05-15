@@ -28,13 +28,20 @@ class Node:
     def matchesRule(self, node):
         if type(node) is Value:
             return self
-        print(type(self))
-        print(type(node))
-        if type(self) != type(node):
-            return None
-        elif self.Left.matchesRule(node.Left) == None or self.Right.matchesRule(node.Right) == None:
-            return None
-        return self
+        
+        if type(self) == type(node):
+            if self.Left.matchesRule(node.Left) != None or self.Right.matchesRule(node.Right) != None:
+                return self
+        
+        leftMatch = self.Left.matchesRule(node.Left)
+        if leftMatch != None:
+            return leftMatch
+        
+        rightMatch = self.Right.matchesRule(node.Right)
+        if rightMatch != None:
+            return rightMatch
+        
+        return None
         
 class Conjunction(Node):
     def calculate(self, truth):
@@ -69,11 +76,15 @@ class Negation(Node):
     def matchesRule(self, node):
         if type(node) is Value:
             return self
-        if type(self) != type(node):
-            return None
-        elif self.Left.matchesRule(node.Left) == None:
-            return None
-        return self
+        if type(self) == type(node):
+            if self.Left.matchesRule(node.Left) != None:
+                return self
+            
+        leftMatch = self.Left.matchesRule(node.Left)
+        if leftMatch != None:
+            return leftMatch
+            
+        return None
 
 class Value(Node):
     def __init__(self, name):
