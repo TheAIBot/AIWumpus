@@ -30,15 +30,15 @@ class Formula:
         if match.parent != None:
             parent = match.parent
             if parent.Left == match:
-                parent.Left = rule.after.copy()
+                parent.Left = rule.after.formula.copy()
                 parent.Left.parent = parent
             elif parent.Right == match:
-                parent.Right = rule.after.copy()
+                parent.Right = rule.after.formula.copy()
                 parent.Right.parent = parent
             else:
                 raise Exception("Failed to find correct node")
         else:
-            self.formula = rule.after.copy()
+            self.formula = rule.after.formula.copy()
             
         print(self.tostring())
             
@@ -68,6 +68,7 @@ class Rule:
         return None
 
 class Node:
+
     def __init__(self, left, right, operator):
         self.Left = left
         self.Right = right
@@ -93,6 +94,7 @@ class Node:
         rightMatch = self.Right.matchesRule(node.Right)
         if rightMatch != None:
             return rightMatch
+        return None
     def createReplaceTable(self, node, replacer):
         if type(node) is Value:
             replacer[node.name] = self
@@ -159,7 +161,6 @@ class Negation(Node):
         leftMatch = self.Left.matchesRule(node.Left)
         if leftMatch != None:
             return leftMatch
-        
         return None
     
     def createReplaceTable(self, node, replacer):
