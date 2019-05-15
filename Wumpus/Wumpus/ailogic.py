@@ -14,10 +14,7 @@ class Formula:
         return Formula(self.formula.copy())
     
     def getValueNode(self, name):
-        node = self.formula.getValueNode(name)
-        if node == None:
-            raise Exception("Failed to find value node")
-        return node
+        return self.formula.getValueNode(name)
     
     def executeRuleIfPossible(self, rule):
         match = self.findRuleMatch(rule)
@@ -40,22 +37,22 @@ class Formula:
         else:
             self.formula = rule.after.formula.copy()
             
-        print(self.tostring())
-            
         for valueName in replacer:
             node = self.getValueNode(valueName)
-            if node.parent == None:
-                self.formula = replacer[valueName]
-            else:
-                parent = node.parent
-                if parent.Left == node:
-                    parent.Left = replacer[valueName]
-                    parent.Left.parent = parent
-                elif parent.Right == node:
-                    parent.Right = replacer[valueName]
-                    parent.Right.parent = parent
+            while node != None:
+                if node.parent == None:
+                    self.formula = replacer[valueName]
                 else:
-                    raise Exception("Failed to find correct node")
+                    parent = node.parent
+                    if parent.Left == node:
+                        parent.Left = replacer[valueName]
+                        parent.Left.parent = parent
+                    elif parent.Right == node:
+                        parent.Right = replacer[valueName]
+                        parent.Right.parent = parent
+                    else:
+                        raise Exception("Failed to find correct node")
+                node = self.getValueNode(valueName)
             
 
     
@@ -73,10 +70,11 @@ class Node:
         self.Left = left
         self.Right = right
         self.Operator = operator
-        if left != None:
-            left.parent = self
-        if right != None:
-            right.parent = self
+        self.parent = None
+        if self.Left != None:
+            self.Left.parent = self
+        if self.Right != None:
+            self.Right.parent = self
     def tostring(self):
         return "(" + self.Left.tostring() + " " + self.Operator + " " + self.Right.tostring() + ")"
     def matchesRule(self, node):
@@ -119,7 +117,7 @@ class Conjunction(Node):
         rightC = self.Right.Calculate()
         return leftC and rightC
     def copy(self):
-        return Conjunction(self.Left, self.Right, self.Operator)
+        return Conjunction(self.Left.copy(), self.Right.copy(), self.Operator)
     
 class Disjunction(Node):
     def calculate(self, truth):
@@ -127,7 +125,7 @@ class Disjunction(Node):
         rightC = self.Right.Calculate()
         return leftC or rightC
     def copy(self):
-        return Disjunction(self.Left, self.Right, self.Operator)
+        return Disjunction(self.Left.copy(), self.Right.copy(), self.Operator)
     
 class Implication(Node):
     def calculate(self, truth):
@@ -135,7 +133,7 @@ class Implication(Node):
         rightC = self.Right.Calculate()
         return not (leftC and not rightC)
     def copy(self):
-        return Implication(self.Left, self.Right, self.Operator)
+        return Implication(self.Left.copy(), self.Right.copy(), self.Operator)
     
 class BiImplication(Node):
     def calculate(self, truth):
@@ -143,7 +141,7 @@ class BiImplication(Node):
         rightC = self.Right.Calculate()
         return leftC == rightC
     def copy(self):
-        return BiImplication(self.Left, self.Right, self.Operator)
+        return BiImplication(self.Left.copy(), self.Right.copy(), self.Operator)
     
 class Negation(Node):
     def calculate(self, truth):
@@ -170,7 +168,7 @@ class Negation(Node):
             
         self.Left.createReplaceTable(node.Left, replacer)
     def copy(self):
-        return Negation(self.Left, None, self.Operator)
+        return Negation(self.Left.copy(), None, self.Operator)
     def getValueNode(self, name):
         leftValue = self.Left.getValueNode(name)
         if leftValue != None:
@@ -187,6 +185,8 @@ class Value(Node):
     def tostring(self):
         return self.name
     def matchesRule(self, node):
+        if type(node) is Value:
+            return self
         raise Exception("not allowed to compare values between different equations")
     def createReplaceTable(self, node, replacer):
         if type(node) is Value:
