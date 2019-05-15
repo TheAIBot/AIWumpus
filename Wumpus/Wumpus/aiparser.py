@@ -65,7 +65,7 @@ class Scanner:
         elif self.char.isalpha():
             buffer = self.char
             self.nextChar()
-            while self.char.isalpha() or self.char.isdigit():
+            while self.char.isalpha() or self.char.isdigit() or self.char == ',':
                 buffer = buffer+ self.char
                 self.nextChar()
             return Token(TokenType.VAL, buffer)
