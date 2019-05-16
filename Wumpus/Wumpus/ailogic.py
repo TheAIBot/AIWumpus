@@ -3,6 +3,7 @@
 from aiLogicNodes import *
 from aiParser import *
 from os import linesep
+import re
 
 class Formula:
     def __init__(self, formulaString: str):
@@ -66,6 +67,9 @@ class KnowledgeBase:
         self.knowledge = []
         formulaStrings = knowledge.splitlines()
         for formulaString in formulaStrings:
+            #Remove comments
+            formulaString = re.sub("#.*", "", formulaString)
+            #Don't add if the string is empty
             if  formulaString:
                 self.knowledge.append(Formula(formulaString))
 
