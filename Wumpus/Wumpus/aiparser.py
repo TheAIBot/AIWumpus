@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from enum import Enum
-from ailogic import *
+from aiLogicNodes import *
         
 class TokenType(Enum):
     AND = 1
@@ -110,7 +110,7 @@ class Scanner:
 
 def parse(text):
     scanner = Scanner(text)
-    return Formula(biImpExpression(scanner))
+    return biImpExpression(scanner)
     
 def biImpExpression(scanner):
     left = impExpression(scanner)
