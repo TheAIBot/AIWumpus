@@ -8,7 +8,7 @@ class Formula:
         return self.formula.tostring()
     
     def findRuleMatch(self, rule):
-        return self.formula.matchesRule(rule.before.formula)
+        return self.formula.matchesRule(rule.before.formula, False)
     
     def copy(self):
         return Formula(self.formula.copy())
@@ -74,19 +74,19 @@ class Node:
             self.Right.parent = self
     def tostring(self):
         return "(" + self.Left.tostring() + " " + self.Operator + " " + self.Right.tostring() + ")"
-    def matchesRule(self, node):
-        if type(node) is Value:
+    def matchesRule(self, node, startedMatching):
+        if startedMatching and type(node) is Value:
             return self
         
         if type(self) == type(node):
-            if self.Left.matchesRule(node.Left) != None or self.Right.matchesRule(node.Right) != None:
+            if self.Left.matchesRule(node.Left, True) != None or self.Right.matchesRule(node.Right, True) != None:
                 return self
         
-        leftMatch = self.Left.matchesRule(node.Left)
+        leftMatch = self.Left.matchesRule(node, False)
         if leftMatch != None:
             return leftMatch
         
-        rightMatch = self.Right.matchesRule(node.Right)
+        rightMatch = self.Right.matchesRule(node, False)
         if rightMatch != None:
             return rightMatch
         return None
@@ -146,14 +146,14 @@ class Negation(Node):
         return not leftC
     def tostring(self):
         return "(" + self.Operator + self.Left.tostring() + ")"
-    def matchesRule(self, node):
-        if type(node) is Value:
+    def matchesRule(self, node, startedMatching):
+        if startedMatching and type(node) is Value:
             return self
         if type(self) == type(node):
-            if self.Left.matchesRule(node.Left) != None:
+            if self.Left.matchesRule(node.Left, True) != None:
                 return self
             
-        leftMatch = self.Left.matchesRule(node.Left)
+        leftMatch = self.Left.matchesRule(node, False)
         if leftMatch != None:
             return leftMatch
         return None
@@ -181,10 +181,10 @@ class Value(Node):
         return truth[self.name]
     def tostring(self):
         return self.name
-    def matchesRule(self, node):
+    def matchesRule(self, node, startedMatching):
         if type(node) is Value:
             return self
-        raise Exception("not allowed to compare values between different equations")
+        return None
     def createReplaceTable(self, node, replacer):
         if type(node) is Value:
             replacer[node.name] = self
