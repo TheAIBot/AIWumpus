@@ -1,5 +1,4 @@
 class Node:
-
     def __init__(self, left, right, operator):
         self.Left = left
         self.Right = right
@@ -19,13 +18,14 @@ class Node:
             if self.Left.matchesRule(node.Left, True) != None or self.Right.matchesRule(node.Right, True) != None:
                 return self
         
-        leftMatch = self.Left.matchesRule(node, False)
-        if leftMatch != None:
-            return leftMatch
+        if not startedMatching:
+            leftMatch = self.Left.matchesRule(node, False)
+            if leftMatch != None:
+                return leftMatch
         
-        rightMatch = self.Right.matchesRule(node, False)
-        if rightMatch != None:
-            return rightMatch
+            rightMatch = self.Right.matchesRule(node, False)
+            if rightMatch != None:
+                return rightMatch
         return None
     def createReplaceTable(self, node, replacer):
         if type(node) is Value:
@@ -89,10 +89,11 @@ class Negation(Node):
         if type(self) == type(node):
             if self.Left.matchesRule(node.Left, True) != None:
                 return self
-            
-        leftMatch = self.Left.matchesRule(node, False)
-        if leftMatch != None:
-            return leftMatch
+        
+        if not startedMatching:
+            leftMatch = self.Left.matchesRule(node, False)
+            if leftMatch != None:
+                return leftMatch
         return None
     
     def createReplaceTable(self, node, replacer):
