@@ -15,13 +15,13 @@ class TokenType(Enum):
     END = 9
     
 class Token:
-    def __init__(self, type, text):
+    def __init__(self, type: TokenType, text: str):
         self.tokenType = type
         self.text = text
     
         
 class Scanner:
-    def __init__(self, text):
+    def __init__(self, text: str):
         self.text = text
         self.pos = 0
         self.char = text[self.pos]
@@ -92,7 +92,7 @@ class Scanner:
         
         return token
         
-    def have(self, lookingForType):
+    def have(self, lookingForType: TokenType):
         if len(self.text) <= self.pos:
             return False
         
@@ -108,32 +108,32 @@ class Scanner:
         
     
 
-def parse(text):
+def parse(text: str):
     scanner = Scanner(text)
     return biImpExpression(scanner)
     
-def biImpExpression(scanner):
+def biImpExpression(scanner: Scanner):
     left = impExpression(scanner)
     while scanner.have(TokenType.BI_IMP):
         left = BiImplication(left, biImpExpression(scanner), "<->")
         
     return left
     
-def impExpression(scanner):
+def impExpression(scanner: Scanner):
     left = orExpression(scanner)
     while scanner.have(TokenType.IMP):
         left = Implication(left, impExpression(scanner), "->")
         
     return left
     
-def orExpression(scanner):
+def orExpression(scanner: Scanner):
     left = andExpression(scanner)
     while scanner.have(TokenType.OR):
         left = Disjunction(left, orExpression(scanner), "||")
         
     return left
 
-def andExpression(scanner):
+def andExpression(scanner: Scanner):
     left = notExpression(scanner)
     while scanner.have(TokenType.AND):
         left = Conjunction(left, andExpression(scanner), "&&")
@@ -141,7 +141,7 @@ def andExpression(scanner):
     return left
     
 
-def notExpression(scanner):
+def notExpression(scanner: Scanner):
     left = None
     while scanner.have(TokenType.NEG):
         left = Negation(notExpression(scanner), None, "!")
@@ -150,7 +150,7 @@ def notExpression(scanner):
         
     return left
 
-def parExpression(scanner):
+def parExpression(scanner: Scanner):
     left = valExpression(scanner)
     if scanner.have(TokenType.PAR_START):
         left = biImpExpression(scanner)
@@ -161,7 +161,7 @@ def parExpression(scanner):
         
     return left
     
-def valExpression(scanner):
+def valExpression(scanner: Scanner):
     token = scanner.see()
     if token.tokenType == TokenType.VAL:
         scanner.have(TokenType.VAL)
