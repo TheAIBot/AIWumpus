@@ -2,6 +2,7 @@
 
 from aiLogicNodes import *
 from aiParser import *
+from os import linesep
 
 class Formula:
     def __init__(self, formulaString: str):
@@ -60,7 +61,19 @@ class KnowlegdeRule:
         self.befores = befores
         self.afters = afters
 
+class KnowledgeBase:
+    def __init__(self, knowledge: str):
+        self.knowledge = []
+        formulaStrings = knowledge.splitlines()
+        for formulaString in formulaStrings:
+            if  formulaString:
+                self.knowledge.append(Formula(formulaString))
 
+    def tostring(self):
+        formulaStrings = []
+        for formula in self.knowledge:
+            formulaStrings.append(formula.tostring())
+        return linesep.join(formulaStrings)
 
 
 
