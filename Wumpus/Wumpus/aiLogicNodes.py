@@ -10,20 +10,20 @@ class Node:
             self.Right.parent = self
     def tostring(self):
         return "(" + self.Left.tostring() + " " + self.Operator + " " + self.Right.tostring() + ")"
-    def matchesRule(self, node, startedMatching):
+    def matchesRule(self, node, startedMatching, onlyMatchRoot):
         if startedMatching and type(node) is Value:
             return self
         
         if type(self) == type(node):
-            if self.Left.matchesRule(node.Left, True) != None or self.Right.matchesRule(node.Right, True) != None:
+            if self.Left.matchesRule(node.Left, True, False) != None or self.Right.matchesRule(node.Right, True, False) != None:
                 return self
         
-        if not startedMatching:
-            leftMatch = self.Left.matchesRule(node, False)
+        if not startedMatching and not onlyMatchRoot:
+            leftMatch = self.Left.matchesRule(node, False, False)
             if leftMatch != None:
                 return leftMatch
         
-            rightMatch = self.Right.matchesRule(node, False)
+            rightMatch = self.Right.matchesRule(node, False, False)
             if rightMatch != None:
                 return rightMatch
         return None
@@ -43,6 +43,9 @@ class Node:
         if rightValue != None:
             return rightValue
         return None
+    def getValues(self, values: list):
+        self.Left.getValues(values)
+        self.Right.getValues(values)
             
         
 class Conjunction(Node):
@@ -83,15 +86,15 @@ class Negation(Node):
         return not leftC
     def tostring(self):
         return "(" + self.Operator + self.Left.tostring() + ")"
-    def matchesRule(self, node, startedMatching):
+    def matchesRule(self, node, startedMatching, onlyMatchRoot):
         if startedMatching and type(node) is Value:
             return self
         if type(self) == type(node):
-            if self.Left.matchesRule(node.Left, True) != None:
+            if self.Left.matchesRule(node.Left, True, False) != None:
                 return self
         
-        if not startedMatching:
-            leftMatch = self.Left.matchesRule(node, False)
+        if not startedMatching and not onlyMatchRoot:
+            leftMatch = self.Left.matchesRule(node, False, False)
             if leftMatch != None:
                 return leftMatch
         return None
@@ -109,6 +112,8 @@ class Negation(Node):
         if leftValue != None:
             return leftValue
         return None
+    def getValues(self, values: list):
+        self.Left.getValues(values)
 
 class Value(Node):
     def __init__(self, name):
@@ -119,7 +124,7 @@ class Value(Node):
         return truth[self.name]
     def tostring(self):
         return self.name
-    def matchesRule(self, node, startedMatching):
+    def matchesRule(self, node, startedMatching, onlyMatchRoot):
         if type(node) is Value:
             return self
         return None
@@ -132,3 +137,5 @@ class Value(Node):
         if self.name == name:
             return self
         return None
+    def getValues(self, values: list):
+        values.append(self)
