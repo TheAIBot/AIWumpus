@@ -25,7 +25,7 @@ class Formula:
         return self.formula.matchesRule(pattern, False, onlyMatchRoot)
 
     def isSame(self, formula):
-        return self.findPatternMatch(formula.formula, True)
+        return self.formula.isSame(formula.formula)
     
     def copy(self):
         return Formula(self.formula.copy())
@@ -86,27 +86,37 @@ class KnowlegdeRule:
         for after in afters:
             self.afters.append(Formula(after, True))
 
+    def findMatches(self, index, replacer, formulasToRemove, knowledgeBase):
+        before = self.befores[index]
+        actualBefore = before.copy()
+        Formula.replaceValuesWithFormulas(actualBefore, replacer)
+
+        for formula in knowledgeBase.knowledge:
+            match = formula.findPatternMatch(actualBefore.formula, True)
+            if match == None:
+                continue
+            
+            newReplacer = {}
+            match.createReplaceTable(actualBefore.formula, newReplacer)
+            
+            combinedReplacer = dict(replacer)
+            combinedReplacer.update(newReplacer)
+            if index + 1 == len(self.befores):
+                replacer.update(newReplacer)
+                formulasToRemove.append(formula)
+                return True
+            else:
+                if self.findMatches(index + 1, combinedReplacer, formulasToRemove, knowledgeBase):
+                    replacer.update(newReplacer)
+                    formulasToRemove.append(formula)
+                    return True
+        return False
+
     def tryRule(self, knowledgeBase):
         replacer = {}
         formulasToRemove = []
-        for before in self.befores:
-            actualBefore = before.copy()
-            Formula.replaceValuesWithFormulas(actualBefore, replacer)
-
-            foundMatch = False
-            for formula in knowledgeBase.knowledge:
-                match = formula.findPatternMatch(actualBefore.formula, True)
-                if match == None:
-                    continue
-            
-                foundMatch = True
-                match.createReplaceTable(actualBefore.formula, replacer)
-                formulasToRemove.append(formula)
-                break;
-
-            #Failed to find on the the formulas in the knowledge base
-            if not foundMatch:
-                return False
+        if not self.findMatches(0, replacer, formulasToRemove, knowledgeBase):
+            return False
 
         for toRemove in formulasToRemove:
             knowledgeBase.knowledge.remove(toRemove)
@@ -114,7 +124,7 @@ class KnowlegdeRule:
         for after in self.afters:
             afterFormula = after.copy()
             Formula.replaceValuesWithFormulas(afterFormula, replacer)
-            knowledgeBase.knowledge.append(afterFormula)
+            knowledgeBase.addKnowledge(afterFormula)
 
         return True
 
@@ -154,6 +164,22 @@ class KnowledgeBase:
             didRule = True
         return didRule
 
+    def addKnowledge(self, formula):
+        if any(x.isSame(formula) for x in self.knowledge):
+            return
+        self.knowledge.append(formula)
+
+    def tryRules(self, rules, knowledgeRules):
+        while True:
+            usedRule = False
+            for rule in rules:
+                if self.tryRule(rule):
+                    usedRule = True
+            for kRule in knowledgeRules:
+                if self.tryKnowledgeRule(kRule):
+                    usedRule = True
+            if not usedRule:
+                break
 
 
 

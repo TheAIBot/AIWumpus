@@ -46,6 +46,11 @@ class Node:
     def getValues(self, values: list):
         self.Left.getValues(values)
         self.Right.getValues(values)
+    def isSame(self, node):
+        if type(self) == type(node):
+            if self.Left.isSame(node.Left) and self.Right.isSame(node.Right):
+                return True
+        return False
             
         
 class Conjunction(Node):
@@ -114,6 +119,11 @@ class Negation(Node):
         return None
     def getValues(self, values: list):
         self.Left.getValues(values)
+    def isSame(self, node):
+        if type(self) == type(node):
+            if self.Left.isSame(node.Left):
+                return True
+        return False
 
 class Value(Node):
     def __init__(self, name):
@@ -139,3 +149,8 @@ class Value(Node):
         return None
     def getValues(self, values: list):
         values.append(self)
+    def isSame(self, node):
+        if type(self) == type(node):
+            if self.name == node.name:
+                return True
+        return False
