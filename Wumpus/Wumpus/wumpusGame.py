@@ -25,7 +25,7 @@ class Tile:
         self.glitter = False
 
     def makeEffectName(self, effect):
-        return effect + str(self.posX) + "," + str(self.posY)
+        return effect + str(self.posX + 1) + "," + str(self.posY + 1)
 
     def getSensorValues(self):
         sensor = []
@@ -122,7 +122,7 @@ class WunpusGame:
         pass
 
     def getSensorValues(self):
-        sensorValues = self.world[self.agentX, self.agentY].getSensorValues()
+        sensorValues = self.world[self.agentX - 1][self.agentY - 1].getSensorValues()
         if self.agentBumpedIntoWall:
             sensorValues.append("Bump")
         else:
