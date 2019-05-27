@@ -12,20 +12,25 @@ class Node:
         return "(" + self.Left.tostring() + " " + self.Operator + " " + self.Right.tostring() + ")"
     def matchesRule(self, node, startedMatching, onlyMatchRoot):
         if startedMatching and type(node) is Value:
+            return True
+        elif not startedMatching and type(node) is Value:
             return self
         
-        if type(self) == type(node):
-            if self.Left.matchesRule(node.Left, True, False) != None or self.Right.matchesRule(node.Right, True, False) != None:
-                return self
+        if not startedMatching:
+            if type(self) == type(node):
+                if self.Left.matchesRule(node.Left, True, False) == True and self.Right.matchesRule(node.Right, True, False) == True:
+                    return self
+            if not onlyMatchRoot:
+                leftMatch = self.Left.matchesRule(node, False, False)
+                if leftMatch != None:
+                    return leftMatch
         
-        if not startedMatching and not onlyMatchRoot:
-            leftMatch = self.Left.matchesRule(node, False, False)
-            if leftMatch != None:
-                return leftMatch
-        
-            rightMatch = self.Right.matchesRule(node, False, False)
-            if rightMatch != None:
-                return rightMatch
+                rightMatch = self.Right.matchesRule(node, False, False)
+                if rightMatch != None:
+                    return rightMatch
+        elif type(self) == type(node):
+            if self.Left.matchesRule(node.Left, True, False) == True and self.Right.matchesRule(node.Right, True, False) == True:
+                return True
         return None
     def createReplaceTable(self, node, replacer):
         if type(node) is Value:
@@ -93,15 +98,21 @@ class Negation(Node):
         return "(" + self.Operator + self.Left.tostring() + ")"
     def matchesRule(self, node, startedMatching, onlyMatchRoot):
         if startedMatching and type(node) is Value:
+            return True
+        elif not startedMatching and type(node) is Value:
             return self
-        if type(self) == type(node):
-            if self.Left.matchesRule(node.Left, True, False) != None:
-                return self
-        
-        if not startedMatching and not onlyMatchRoot:
-            leftMatch = self.Left.matchesRule(node, False, False)
-            if leftMatch != None:
-                return leftMatch
+
+        if not startedMatching:
+            if type(self) == type(node):
+                if self.Left.matchesRule(node.Left, True, False) == True:
+                    return self
+            if not onlyMatchRoot:
+                leftMatch = self.Left.matchesRule(node, False, False)
+                if leftMatch != None:
+                    return leftMatch
+        elif type(self) == type(node):
+            if self.Left.matchesRule(node.Left, True, False) == True:
+                return True
         return None
     
     def createReplaceTable(self, node, replacer):
@@ -135,7 +146,9 @@ class Value(Node):
     def tostring(self):
         return self.name
     def matchesRule(self, node, startedMatching, onlyMatchRoot):
-        if type(node) is Value:
+        if startedMatching and type(node) is Value:
+            return True
+        elif not startedMatching and type(node) is Value:
             return self
         return None
     def createReplaceTable(self, node, replacer):
