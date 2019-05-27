@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from aiLogic import *
+from wumpusGame import *
 
 
 """
@@ -20,15 +21,25 @@ from aiLogic import *
 
 rules = [
     Rule("a <-> b", "((a -> b) && (b -> a))"),
-    Rule("!!a", "a")
+    Rule("!!a", "a"),
+    Rule("a -> b", "!a || b")
 ]
 
 kRules = [
     KnowlegdeRule(["a -> b", "a"], ["a", "b"]),
     KnowlegdeRule(["a && b"], ["a", "b"]),
-    KnowlegdeRule(["a -> b", "!b"], ["!a", "!b"]),
-    KnowlegdeRule(["!(a || b)"], ["!a && !b"])
+    CNFRule(["a || b", "c || !b"], ["a || c"]),
+    CNFRule(["b || a", "!b || c"], ["a || c"]),
+    CNFRule(["a || b", "!b || c"], ["a || c"]),
+    CNFRule(["b || a", "c || !b"], ["a || c"]),
+
+    CNFRule(["b || a", "!b || c"], ["a"])
+    #KnowlegdeRule(["a -> b", "!b"], ["!a", "!b"]),
+    #KnowlegdeRule(["!(a || b)"], ["!a && !b"])
 ]
+
+game = WunpusGame()
+print(game.tostring())
 
 
 
@@ -37,11 +48,16 @@ knowledge = KnowledgeBase("""
 b1,1 <-> p1,2 || p2,1
 """)
 
-print(knowledge.tostring())
-knowledge.tryRules(rules, kRules)
-print()
-print()
-print(knowledge.tostring())
+"""
+    print(knowledge.tostring())
+    knowledge.tryRules(rules, kRules)
+    knowledge.addKnowledge(Formula("!b1,4"))
+    knowledge.tryRules(rules, kRules)
+    print()
+    print()
+    print(knowledge.tostring())
+"""
+
 
 """
     print()
@@ -51,17 +67,21 @@ print(knowledge.tostring())
     file = open("InitialKnowledgeBase.txt", "r")
     initialKnowledgeString = file.read()
     knowledge = KnowledgeBase(initialKnowledgeString)
+
+    knowledge.addKnowledge(Formula("b1,3 && s1,3"))
+    knowledge.tryRules(rules, kRules)
+
     print(knowledge.tostring())
 
     print()
     print()
     print()
 
-    knowledge.tryRule(rule1)
-    #knowledge.tryRule(rule2)
-    #knowledge.tryKnowledgeRule(kRule)
+    knowledge.tryRules(rules, kRules)
     print(knowledge.tostring())
 """
+
+
 
 
 
