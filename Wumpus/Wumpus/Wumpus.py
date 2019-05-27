@@ -22,65 +22,50 @@ from wumpusGame import *
 rules = [
     Rule("a <-> b", "((a -> b) && (b -> a))"),
     Rule("!!a", "a"),
-    Rule("a -> b", "!a || b")
+    Rule("a -> b", "!a || b"),
+    Rule("!a && !b", "!(a || b)")
 ]
 
 kRules = [
-    KnowlegdeRule(["a -> b", "a"], ["a", "b"]),
     KnowlegdeRule(["a && b"], ["a", "b"]),
-    CNFRule(["a || b", "c || !b"], ["a || c"]),
-    CNFRule(["b || a", "!b || c"], ["a || c"]),
-    CNFRule(["a || b", "!b || c"], ["a || c"]),
-    CNFRule(["b || a", "c || !b"], ["a || c"]),
-
-    CNFRule(["b || a", "!b || c"], ["a"])
-    #KnowlegdeRule(["a -> b", "!b"], ["!a", "!b"]),
-    #KnowlegdeRule(["!(a || b)"], ["!a && !b"])
+    KnowlegdeRule(["!(a || b)"], ["!a && !b"])
 ]
 
-game = WunpusGame()
-print(game.tostring())
-
-
-
 knowledge = KnowledgeBase("""
-!b1,1
-b1,1 <-> p1,2 || p2,1
+a || ((!z && !q) && !a)
 """)
 
 """
     print(knowledge.tostring())
     knowledge.tryRules(rules, kRules)
-    knowledge.addKnowledge(Formula("!b1,4"))
-    knowledge.tryRules(rules, kRules)
     print()
     print()
     print(knowledge.tostring())
 """
 
 
-"""
-    print()
-    print()
-    print()
 
-    file = open("InitialKnowledgeBase.txt", "r")
-    initialKnowledgeString = file.read()
-    knowledge = KnowledgeBase(initialKnowledgeString)
+print()
+print()
+print()
 
-    knowledge.addKnowledge(Formula("b1,3 && s1,3"))
-    knowledge.tryRules(rules, kRules)
+file = open("InitialKnowledgeBase.txt", "r")
+initialKnowledgeString = file.read()
+knowledge = KnowledgeBase(initialKnowledgeString)
 
-    print(knowledge.tostring())
+print(knowledge.tostring())
 
-    print()
-    print()
-    print()
+game = WunpusGame()
+print(game.tostring())
+for sensed in game.getSensorValues():
+    knowledge.addKnowledge(Formula(sensed))
 
-    knowledge.tryRules(rules, kRules)
-    print(knowledge.tostring())
-"""
+print()
+print()
+print()
 
+knowledge.tryRules(rules, kRules)
+print(knowledge.tostring())
 
 
 

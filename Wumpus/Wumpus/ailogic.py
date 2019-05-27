@@ -128,9 +128,6 @@ class KnowlegdeRule:
 
         return True
 
-
-
-
 class KnowledgeBase:
     def __init__(self, knowledge: str):
         self.knowledge = []
