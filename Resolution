@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon May 27 14:23:00 2019
+
+@author: jonatan
+"""
+#####    Resolvation of 2 clauses
+def resolve(formula1,formula2,Resolution):
+    resolvants = [formula1,formula2]
+    for i in formula1:
+        for j in formula2:
+            #"Compare each literal with each other,"
+            #"if they are opposites, append the rest to resolvants, as one formula"
+            if i == -j: #"If i is the opposit of j"
+                R = formula1 + formula2 # + means placing an "or" between the fomulas.
+                R.remove(i)
+                R.remove(j)
+                if R == []:
+                    Resolution = 1
+                    return R, Resolution
+                else:
+                    resolvants.append(set(R)) # The set takes unique values, so every literal only apeers ones. 
+    return resolvants, Resolution 
+
+######    Resolution function
+
+def resolution(KB,alpha):
+   clauses = KB + -alpha # KnowledgeBase "and" not! new position
+   new = list()
+   Resolution = 0
+   while Resolution == 0:
+       for formula1 in clauses:
+           for formula2 in clauses:
+               if formula1 != formula2:
+                   resolvants,Resolution = resolve(formula1,formula2,Resolution)
+                   if Resolution == 1:
+                       return Resolution
+                   new = set(new+resolvants) # The set of all obtained resolvants
+       if len(set(new+clauses)) == len(clauses):
+           return Resolution
+       else: 
+           clauses = set(new + clauses)
