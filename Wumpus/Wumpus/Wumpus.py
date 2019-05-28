@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from aiLogic import *
+from ailogic import *
 from wumpusGame import *
 
 rules = [
@@ -38,14 +38,51 @@ knowledge.tryRules(rules, kRules)
 #Make random game and show it
 game = WunpusGame()
 print(game.tostring())
+alive = True
+visitedSquares = [[game.agentX, game.agentY]]
+safeSquares = [[game.agentX, game.agentY]]
+unsafeSquares = [[]]
 
 #Add sense knowledge to kb
-for sensed in game.getSensorValues():
-    knowledge.addKnowledge(Formula(sensed))
+while(alive):
+    #if agent is at same position as wumpus or pit
+        alive = False
+        print("you are dead")
+        break
+    
+    for sensed in game.getSensorValues():
+        knowledge.addKnowledge(Formula(sensed))
+    
+    #Do resolution
+    
+    #Check if next square is safe. I think we just as a first priority check 
+    #the agentX+1 square. If it is not in visitedSquares, and not in unsafe
+    #Squares, we do resolution on it. If it is safe, no wumpus or pit, we go
+    #it. Next priority is agentY+1, then agentX-1 and at last agentY-1. 
+    #We also need to check, that we don't do resolution on a wall.
+    #The if below is how resolution should be done, perhaps there is a more
+    #efficient way. 
+    if(knowledge.resolution("!p{0},{1}".format(game.agentX, game.agentY))):
+        knowledge.addKnowledge(Formula("!p2,1"))
+        if (knowledge.resolution("!w2,1")):
+            knowledge.addKnowledge(Formula("!w2,1"))
+            #Update agent position
+            #AddToSafeSquares
+        else:
+            knowledge.addKnowledge(Formula("w2,1"))
+            #AddToUnsafeSquares
+    else:
+        knowledge.addKnowledge(Formula("p2,1"))
+        #AddToUnsafeSquares
+        if (knowledge.resolution("!w2,1")):
+            knowledge.addKnowledge(Formula("!w2,1"))
+        else:
+            knowledge.addKnowledge("w2,1")
+            
+    #I have made a updateWorld function, that just updates the position of the
+    #agent, when a move have been made
+    game.updateWorld()
 
-#Do resolution
-print(knowledge.resolution("!p2,1"))
-print(knowledge.resolution("!p1,2"))
 
 #So resolve works but it's incredible slow the result is False.
 #This is caused by the fact that all possible combination of
@@ -57,32 +94,4 @@ print(knowledge.resolution("!p1,2"))
 knowledge.revision("w1,1")
 
 #print knowledge base
-print(knowledge.tostring())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+#print(knowledge.tostring())
