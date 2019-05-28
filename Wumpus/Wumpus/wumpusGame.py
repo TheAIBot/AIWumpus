@@ -23,6 +23,7 @@ class Tile:
         self.stench = False
         self.gold = False
         self.glitter = False
+        self.agent = False
 
     def makeEffectName(self, effect):
         return effect + str(self.posX + 1) + "," + str(self.posY + 1)
@@ -64,6 +65,11 @@ class Tile:
             return "g"
         else:
             return " "
+    def toAgentString(self):
+        if self.agent:
+            return "a"
+        else:
+            return " "
 
 
 class WunpusGame:
@@ -100,12 +106,18 @@ class WunpusGame:
         self.addEntityWithEffectToWorld("gold", "glitter")
         self.addEntityWithEffectToWorld("wumpus", "stench")
         self.addEntityWithEffectToWorld("wumpus", "stench")
+        self.addEntityWithEffectToWorld("agent", " ")
 
     def addEntityWithEffectToWorld(self, entity, effect):
-        entityX = random.randint(1, self.width)
-        entityY = random.randint(1, self.height)
+        if (entity == "agent"):
+            entityX = self.agentX
+            entityY = self.agentY
+        else:
+            entityX = random.randint(1, self.width)
+            entityY = random.randint(1, self.height)
         setattr(self.world[entityX - 1][entityY - 1], entity, True)
-        self.addSurroundingEffects(entityX, entityY, effect)
+        if (entity == "wumpus"):
+            self.addSurroundingEffects(entityX, entityY, effect)
 
     def addSurroundingEffects(self, x, y, effect):
         self.addEffectIfInWorld(x + 0, y + 0, effect)
@@ -138,7 +150,7 @@ class WunpusGame:
         for y in range(self.height + 2):
             stringsWorld.append("")
 
-        for i in range(3):
+        for i in range(4):
             for x in range(self.width + 2):
                 stringsWorld[0] += "#"
             stringsWorld[0] += " "
@@ -153,12 +165,15 @@ class WunpusGame:
             stringsWorld[y + 1] += "# #"
             for x in range(self.width):
                 stringsWorld[y + 1] += self.world[x][y].toGoldString()
+            stringsWorld[y + 1] += "# #"
+            for x in range(self.width):
+                stringsWorld[y + 1] += self.world[x][y].toAgentString()
             stringsWorld[y + 1] += "#"
 
-        for i in range(3):
+        for i in range(4):
             for y in range(self.width + 2):
                 stringsWorld[len(stringsWorld) - 1] += "#"
             stringsWorld[len(stringsWorld) - 1] += " "
 
-        stringsWorld = [" Pits  Wumpus  Gold"] + stringsWorld
+        stringsWorld = [" Pits  Wumpus  Gold   Agent"] + stringsWorld
         return "\n".join(stringsWorld)
