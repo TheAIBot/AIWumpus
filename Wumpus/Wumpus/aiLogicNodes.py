@@ -9,7 +9,10 @@ class Node:
         if self.Right != None:
             self.Right.parent = self
     def tostring(self):
-        return "(" + self.Left.tostring() + " " + self.Operator + " " + self.Right.tostring() + ")"
+        if (self.parent != None and type(self) == type(self.parent)) or self.parent == None:
+            return self.Left.tostring() + " " + self.Operator + " " + self.Right.tostring()
+        else:
+            return "(" + self.Left.tostring() + " " + self.Operator + " " + self.Right.tostring() + ")"
     def matchesRule(self, node, startedMatching, onlyMatchRoot):
         if startedMatching and type(node) is Value:
             return True
@@ -95,7 +98,7 @@ class Negation(Node):
         leftC = self.Left.Calculate()
         return not leftC
     def tostring(self):
-        return "(" + self.Operator + self.Left.tostring() + ")"
+        return "!" + self.Left.tostring()
     def matchesRule(self, node, startedMatching, onlyMatchRoot):
         if startedMatching and type(node) is Value:
             return True
