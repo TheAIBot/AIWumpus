@@ -198,14 +198,16 @@ class KnowledgeBase:
                 break
         return anyRulesUsed
 
+    def negateLiteral(self, literal):
+        if literal[0] == '!':
+            return literal[1:]
+        else:
+            return "!" + literal
+
     def resolve(self, formula1, formula2):
         resolvants = [formula1, formula2]
         for literal in formula1:
-            lookFor = literal
-            if literal[0] == '!':
-                lookFor = literal[1:]
-            else:
-                lookFor = "!" + literal
+            lookFor = self.negateLiteral(literal)
 
             if lookFor in formula2:
                 r = list(formula1) + list(formula2)
@@ -217,8 +219,12 @@ class KnowledgeBase:
                     resolvants.append(frozenset(r))
         return resolvants, False
 
+    def cnfFormulaToLiterals(self, formula):
+        return [e.strip() for e in formula.tostring().split("||")]
 
-    def resolution(self, alpha):
+    def resolution(self, alphaString):
+        alpha = Formula(alphaString)
+
         #First negate alpha
         negate = Rule("a", "!a")
         doubleNegElim = Rule("!!a", "a")
@@ -228,10 +234,10 @@ class KnowledgeBase:
 
         clauses = set()
         for formula in self.knowledge:
-            literals = [e.strip() for e in formula.tostring().split("||")]
+            literals = self.cnfFormulaToLiterals(formula)
             clauses.add(frozenset(literals))
 
-        clauses.add(frozenset([e.strip() for e in alpha.tostring().split("||")]))
+        clauses.add(frozenset(self.cnfFormulaToLiterals(alpha)))
 
         while True:
             clauseCount = len(clauses)
@@ -246,6 +252,19 @@ class KnowledgeBase:
                 clauses.update(resolvants)
             if len(clauses) == clauseCount:
                 return False
+
+    def revision(self, alphaString):
+        alpha = self.negateLiteral(alphaString)
+
+        #Now need to delete all formulas that contains alpha
+        correctKnowledge = []
+        for formula in self.knowledge:
+            if not (alpha in self.cnfFormulaToLiterals(formula)):
+                correctKnowledge.append(formula)
+
+        self.knowledge = correctKnowledge
+        self.addKnowledge(Formula(alphaString))
+
 
 
 

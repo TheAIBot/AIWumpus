@@ -35,7 +35,7 @@ knowledge = KnowledgeBase(initialKnowledgeString)
 knowledge.tryRules(rules, kRules)
 
 
-#Make random game
+#Make random game and show it
 game = WunpusGame()
 print(game.tostring())
 
@@ -44,14 +44,20 @@ for sensed in game.getSensorValues():
     knowledge.addKnowledge(Formula(sensed))
 
 #Do resolution
-print(knowledge.resolution(Formula("!p2,1")))
-print(knowledge.resolution(Formula("!p1,2")))
+print(knowledge.resolution("!p2,1"))
+print(knowledge.resolution("!p1,2"))
 
 #So resolve works but it's incredible slow the result is False.
 #This is caused by the fact that all possible combination of
 #formulas has to be created and that is in this case
 #millions of formulas.
-print(knowledge.resolution(Formula("!p2,2")))
+#print(knowledge.resolution("!p2,2"))
+
+#Do revision
+knowledge.revision("w1,1")
+
+#print knowledge base
+print(knowledge.tostring())
 
 
 
