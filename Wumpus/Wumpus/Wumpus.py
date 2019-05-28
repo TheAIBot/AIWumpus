@@ -23,12 +23,14 @@ rules = [
     Rule("a <-> b", "((a -> b) && (b -> a))"),
     Rule("!!a", "a"),
     Rule("a -> b", "!a || b"),
-    Rule("!a && !b", "!(a || b)")
+    Rule("a || (b && c)", "((a || b) && (a || c))"),
+    Rule("(b && c) || a", "((a || b) && (a || c))"),
+    Rule("!(a || b)", "(!a && !b)")
+    #Rule("!a && !b", "!(a || b)")
 ]
 
 kRules = [
     KnowlegdeRule(["a && b"], ["a", "b"]),
-    KnowlegdeRule(["!(a || b)"], ["!a && !b"])
 ]
 
 knowledge = KnowledgeBase("""

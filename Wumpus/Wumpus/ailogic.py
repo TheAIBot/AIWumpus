@@ -167,6 +167,7 @@ class KnowledgeBase:
         self.knowledge.append(formula)
 
     def tryRules(self, rules, knowledgeRules):
+        anyRulesUsed = False
         while True:
             usedRule = False
             for rule in rules:
@@ -175,8 +176,10 @@ class KnowledgeBase:
             for kRule in knowledgeRules:
                 if self.tryKnowledgeRule(kRule):
                     usedRule = True
+            anyRulesUsed = anyRulesUsed or usedRule
             if not usedRule:
                 break
+        return anyRulesUsed
 
 
 
