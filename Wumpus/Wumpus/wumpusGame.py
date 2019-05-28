@@ -120,7 +120,6 @@ class WunpusGame:
             self.addSurroundingEffects(entityX, entityY, effect)
 
     def addSurroundingEffects(self, x, y, effect):
-        self.addEffectIfInWorld(x + 0, y + 0, effect)
         self.addEffectIfInWorld(x + 1, y + 0, effect)
         self.addEffectIfInWorld(x - 1, y + 0, effect)
         self.addEffectIfInWorld(x + 0, y + 1, effect)
