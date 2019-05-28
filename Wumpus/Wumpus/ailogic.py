@@ -4,6 +4,7 @@ from aiLogicNodes import *
 from aiParser import *
 from os import linesep
 import re
+import itertools
 
 class Formula:
     def __init__(self, formula, makeValueNamesIllegal = False):
@@ -80,19 +81,28 @@ class KnowlegdeRule:
     def __init__(self, befores, afters):
         self.befores = []
         self.afters = []
+        self.onlyLookAtRoot = True
 
         for before in befores:
             self.befores.append(Formula(before, True))
         for after in afters:
             self.afters.append(Formula(after, True))
 
-    def findMatches(self, index, replacer, formulasToRemove, knowledgeBase):
+    def findMatches(self, index, replacer, formulasToRemove, knowledgeBase, usedFormulas):
         before = self.befores[index]
         actualBefore = before.copy()
         Formula.replaceValuesWithFormulas(actualBefore, replacer)
 
         for formula in knowledgeBase.knowledge:
-            match = formula.findPatternMatch(actualBefore.formula, True)
+            alreadyUsed = False
+            for used in usedFormulas:
+                if formula.isSame(used):
+                    alreadyUsed = True
+                    break
+            if alreadyUsed:
+                continue
+
+            match = formula.findPatternMatch(actualBefore.formula, self.onlyLookAtRoot)
             if match == None:
                 continue
             
@@ -106,16 +116,18 @@ class KnowlegdeRule:
                 formulasToRemove.append(formula)
                 return True
             else:
-                if self.findMatches(index + 1, combinedReplacer, formulasToRemove, knowledgeBase):
+                usedFormulas.append(formula)
+                if self.findMatches(index + 1, combinedReplacer, formulasToRemove, knowledgeBase, usedFormulas):
                     replacer.update(newReplacer)
                     formulasToRemove.append(formula)
                     return True
+                usedFormulas.pop()
         return False
 
     def tryRule(self, knowledgeBase):
         replacer = {}
         formulasToRemove = []
-        if not self.findMatches(0, replacer, formulasToRemove, knowledgeBase):
+        if not self.findMatches(0, replacer, formulasToRemove, knowledgeBase, []):
             return False
 
         for toRemove in formulasToRemove:
@@ -127,6 +139,11 @@ class KnowlegdeRule:
             knowledgeBase.addKnowledge(afterFormula)
 
         return True
+
+class RevisionRule(KnowlegdeRule):
+    def __init__(self, befores, afters):
+        KnowlegdeRule.__init__(self, befores, afters)
+        self.onlyLookAtRoot = False
 
 class KnowledgeBase:
     def __init__(self, knowledge: str):
@@ -180,6 +197,60 @@ class KnowledgeBase:
             if not usedRule:
                 break
         return anyRulesUsed
+
+    def resolve(self, formula1, formula2):
+        resolvants = [formula1, formula2]
+        for literal in formula1:
+            lookFor = literal
+            if literal[0] == '!':
+                lookFor = literal[1:]
+            else:
+                lookFor = "!" + literal
+
+            if lookFor in formula2:
+                r = list(formula1) + list(formula2)
+                r.remove(literal)
+                r.remove(lookFor)
+                if len(r) == 0:
+                    return None, True
+                else:
+                    resolvants.append(frozenset(r))
+        return resolvants, False
+
+
+    def resolution(self, alpha):
+        #First negate alpha
+        negate = Rule("a", "!a")
+        doubleNegElim = Rule("!!a", "a")
+        if not negate.tryRule(alpha):
+            raise Exception("Failed to execute negation rule.")
+        doubleNegElim.tryRule(alpha)
+
+        clauses = set()
+        for formula in self.knowledge:
+            literals = [e.strip() for e in formula.tostring().split("||")]
+            clauses.add(frozenset(literals))
+
+        clauses.add(frozenset([e.strip() for e in alpha.tostring().split("||")]))
+
+        while True:
+            clauseCount = len(clauses)
+            cl = clauses.copy()
+            counter = 0
+            #Creates all pairs
+            for pair in itertools.combinations(cl, 2):
+                counter += 1
+                resolvants, res = self.resolve(pair[0], pair[1])
+                if res:
+                    return True
+                clauses.update(resolvants)
+            if len(clauses) == clauseCount:
+                return False
+
+
+
+
+
 
 
 

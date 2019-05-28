@@ -56,7 +56,7 @@ class Node:
         self.Right.getValues(values)
     def isSame(self, node):
         if type(self) == type(node):
-            if self.Left.isSame(node.Left) and self.Right.isSame(node.Right):
+            if (self.Left.isSame(node.Left) and self.Right.isSame(node.Right)) or (self.Left.isSame(node.Right) and self.Right.isSame(node.Left)):
                 return True
         return False
             
