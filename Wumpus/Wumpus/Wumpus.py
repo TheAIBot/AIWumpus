@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from ailogic import *
+from aiLogic import *
 from wumpusGame import *
 
 rules = [
-    #not, imp and bicond elimination
+    #imp, not and bicond elimination
     Rule("a <-> b", "((a -> b) && (b -> a))"),
     Rule("!!a", "a"),
     Rule("a -> b", "!a || b"),
@@ -26,62 +26,58 @@ kRules = [
 ]
 
 
+
 #Load knowledge base from file
 file = open("InitialKnowledgeBase.txt", "r")
 initialKnowledgeString = file.read()
 knowledge = KnowledgeBase(initialKnowledgeString)
 
 #Convert knowledge base into cnf and then into clauses
+#print(knowledge.tostring())
 knowledge.tryRules(rules, kRules)
+#print(knowledge.tostring())
 
 
 #Make random game and show it
 game = WunpusGame()
 print(game.tostring())
-alive = True
-visitedSquares = [[game.agentX, game.agentY]]
-safeSquares = [[game.agentX, game.agentY]]
-unsafeSquares = [[]]
 
 #Add sense knowledge to kb
-while(alive):
+while(game.isRunning):
+
     #if agent is at same position as wumpus or pit
-        alive = False
-        print("you are dead")
+    if game.didAgentJustDie():
         break
     
     for sensed in game.getSensorValues():
-        knowledge.addKnowledge(Formula(sensed))
+        knowledge.revision(sensed)
     
-    #Do resolution
-    
-    #Check if next square is safe. I think we just as a first priority check 
-    #the agentX+1 square. If it is not in visitedSquares, and not in unsafe
-    #Squares, we do resolution on it. If it is safe, no wumpus or pit, we go
-    #it. Next priority is agentY+1, then agentX-1 and at last agentY-1. 
-    #We also need to check, that we don't do resolution on a wall.
-    #The if below is how resolution should be done, perhaps there is a more
-    #efficient way. 
-    if(knowledge.resolution("!p{0},{1}".format(game.agentX, game.agentY))):
-        knowledge.addKnowledge(Formula("!p2,1"))
-        if (knowledge.resolution("!w2,1")):
-            knowledge.addKnowledge(Formula("!w2,1"))
-            #Update agent position
-            #AddToSafeSquares
-        else:
-            knowledge.addKnowledge(Formula("w2,1"))
-            #AddToUnsafeSquares
-    else:
-        knowledge.addKnowledge(Formula("p2,1"))
-        #AddToUnsafeSquares
-        if (knowledge.resolution("!w2,1")):
-            knowledge.addKnowledge(Formula("!w2,1"))
-        else:
-            knowledge.addKnowledge("w2,1")
-            
-    #I have made a updateWorld function, that just updates the position of the
-    #agent, when a move have been made
-    game.updateWorld()
+    #Do resolution on each adjacant position. Check whether the adjacant
+    #position doesn't have a pit and not a wumpus. If that's the case then
+    #it must be a safe position. After a resolution is true the knowledge
+    #is added to the knowledge base so it's faster to do resolution
+    #in the future.
+    for pos in game.getSurroundingPositions(game.agent.x, game.agent.y):
+        if not pos in game.visitedPositions:
+            notPitLiteral = "!p{0},{1}".format(pos[0], pos[1])
+            notWumpusLiteral = "!w{0},{1}".format(pos[0], pos[1])
+            if knowledge.resolution(notPitLiteral):
+                knowledge.addKnowledge(Formula(notPitLiteral))
+                if knowledge.resolution(notWumpusLiteral):
+                    knowledge.addKnowledge(Formula(notWumpusLiteral))
+                    game.safePositions.add(pos)
+
+    #Choose an action
+    action = game.getNextAction(knowledge)
+
+    #Do action
+    game.executeAction(action)
+    print(game.tostring())
+
+print("Game ended")
+if game.didAgentJustDie():
+    print("The agent died")
+print("Performance: " + game.performance)
 
 
 #So resolve works but it's incredible slow the result is False.
