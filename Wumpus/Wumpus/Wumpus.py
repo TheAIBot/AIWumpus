@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from aiLogic import *
+from ailogic import *
 from wumpusGame import *
 
 rules = [
